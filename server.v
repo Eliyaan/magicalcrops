@@ -63,6 +63,7 @@ fn server_handle(mut ses net.TcpConn) {
 	}
 	// auth
 	file_name := 'saves/${ses.read_line()#[..-1]}'
+	ses.set_read_timeout(time.second*5)
 	if file_name != 'saves/' {
 		if !os.exists(file_name) {
 			os.write_file(file_name + 'seed', '') or { panic(err) }
@@ -86,9 +87,8 @@ fn server_handle(mut ses net.TcpConn) {
 		}
 
 		// wait for requests if needed
-		ses.set_read_timeout(time.second)
 		for {
-			ses.wait_for_read() or { println("timed out");break }
+			ses.wait_for_read() or { println(err);break }
 			a := ses.read_line()#[..-1]
 			if a == 'ping' {
 				mut send := ""
@@ -99,14 +99,15 @@ fn server_handle(mut ses net.TcpConn) {
 					}
 					send = send + time_remaining.str() + ','
 				}
-				ses.write_string('${send}\n') or { panic(err) }
+				ses.write_string('${send}aaaa\n') or { panic(err) }
 			} else if a#[..5] == 'place' { // place[char for x][char for y][char for type]
 				data := a[5..]
 				if inv[data[2]] > 0 {
 					i := data[0] + data[1] * 10
 					if data[2] >= 1 && data[2] <= 78 {
-						if map_[i+10] == 254 {
+						if i+10 < 100 && map_[i+10] == 254 {
 							growth_time := 100 * 60 * math.factorial(data[2] / 10 + 1)
+							println(growth_time)
 							seeds << (growth_time + time.now().unix()).str()
 							// TODO write seed to file
 						} else {
@@ -133,6 +134,9 @@ fn server_handle(mut ses net.TcpConn) {
 				} else {
 					ses.write_string('notenough\n') or { panic(err) }
 				}
+			} else if a == '' {
+				println('client gone')
+				break
 			}
 			time.sleep(10 * time.millisecond)
 		}

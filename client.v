@@ -34,7 +34,12 @@ mut:
 
 fn main() {
 	mut app := &App{
-		con: net.dial_tcp('127.0.0.0:40001') or { panic(err) }
+		con: net.dial_tcp('127.0.0.0:40001')!
+	}
+	defer {
+		println(time.now())
+		println('closing the session')
+		app.con.close() or { panic(err) }
 	}
 	app.ctx = gg.new_context(
 		width: 600
@@ -48,7 +53,7 @@ fn main() {
 		sample_count: 2
 	)
 	file_name := os.input('enter you passcode:')
-	app.con.write_string('${file_name}\n') or { panic(err) }
+	app.con.write_string('${file_name}\n')!
 	for i in 0 .. 10 {
 		map_line := app.con.read_line()[0..10]
 		for j, ch in map_line {
@@ -59,14 +64,15 @@ fn main() {
 	for i in 0 .. 256 {
 		app.inv[i] = conv(inv_[i * 4..(i + 1) * 4].bytes())
 	}
+	app.con.write_string('processing done\n')!
 	app.ctx.run()
 }
 
 fn on_frame(mut app App) {
 	if app.ping % 10 == 0 {
-		println(time.now())
 		app.con.write_string('ping\n') or { panic(err) }
-		app.seeds = app.con.read_line()#[..-1].split(',').map(it.int())
+		r := app.con.read_line()#[..-1].split(',')#[..-1]
+		app.seeds = r.map(it.int())
 	}
 	app.ping++
 	app.ctx.begin()
@@ -81,11 +87,11 @@ fn on_frame(mut app App) {
 // TODO: add the other & sprites
 				else { gg.Color{255, 0, 0, 255} }
 			}
+			app.ctx.draw_square_filled(j * tile, i * tile, tile, color)
 			if app.map[i][j] >= 1 && app.map[i][j] <= 78 {
 				app.ctx.draw_text_def(j*tile, i*tile, app.seeds[seed_nb].str())
 				seed_nb++
 			}
-			app.ctx.draw_square_filled(j * tile, i * tile, tile, color)
 		}
 	}
 	app.ctx.draw_text_def(13 * tile, 5, app.inv[254].str())
