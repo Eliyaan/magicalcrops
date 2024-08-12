@@ -99,7 +99,11 @@ fn server_handle(mut ses net.TcpConn) {
 					}
 					send = send + time_remaining.str() + ','
 				}
-				ses.write_string('${send}aaaa\n') or { panic(err) }
+				if send == '' {
+					ses.write_string('no\n') or {panic(err)}
+				} else {
+					ses.write_string('${send}\n') or { panic(err) }
+				}
 			} else if a#[..5] == 'place' { // place[char for x][char for y][char for type]
 				data := a[5..]
 				if inv[data[2]] > 0 {
@@ -107,8 +111,7 @@ fn server_handle(mut ses net.TcpConn) {
 					if data[2] >= 1 && data[2] <= 78 {
 						if i+10 < 100 && map_[i+10] == 254 {
 							growth_time := 100 * 60 * math.factorial(data[2] / 10 + 1)
-							println(growth_time)
-							seeds << (growth_time + time.now().unix()).str()
+							seeds << int(growth_time + time.now().unix()).str()
 							// TODO write seed to file
 						} else {
 							ses.write_string('nodirt\n') or { panic(err) }
@@ -128,8 +131,6 @@ fn server_handle(mut ses net.TcpConn) {
 					}
 					// update serv map
 					map_ = map_[..i] + data[2].ascii_str() + map_[i + 1..]
-					// update client map
-					ses.write_string(data + '\n') or { panic(err) }
 					// TODO write to map file
 				} else {
 					ses.write_string('notenough\n') or { panic(err) }
@@ -138,7 +139,7 @@ fn server_handle(mut ses net.TcpConn) {
 				println('client gone')
 				break
 			}
-			time.sleep(10 * time.millisecond)
+			time.sleep(20 * time.millisecond)
 		}
 	}
 }

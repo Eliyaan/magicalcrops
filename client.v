@@ -71,8 +71,10 @@ fn main() {
 fn on_frame(mut app App) {
 	if app.ping % 10 == 0 {
 		app.con.write_string('ping\n') or { panic(err) }
-		r := app.con.read_line()#[..-1].split(',')#[..-1]
-		app.seeds = r.map(it.int())
+		r := app.con.read_line()#[..-1]
+		if r != 'no' {
+			app.seeds = r.split(',')#[..-1].map(it.int())
+		}
 	}
 	app.ping++
 	app.ctx.begin()
@@ -88,7 +90,7 @@ fn on_frame(mut app App) {
 				else { gg.Color{255, 0, 0, 255} }
 			}
 			app.ctx.draw_square_filled(j * tile, i * tile, tile, color)
-			if app.map[i][j] >= 1 && app.map[i][j] <= 78 {
+			if app.map[i][j] >= 1 && app.map[i][j] <= 78 && app.seeds.len > 0 {
 				app.ctx.draw_text_def(j*tile, i*tile, app.seeds[seed_nb].str())
 				seed_nb++
 			}
@@ -139,6 +141,7 @@ fn on_event(e &gg.Event, mut app App) {
 					for j in 0 .. 10 {
 						if e.mouse_x < (j + 1) * tile {
 							if app.place > 0 {
+								println(app.place)
 								app.con.write_string('place${u8(j).ascii_str()}${u8(i).ascii_str()}${u8(app.place).ascii_str()}\n') or {
 									panic(err)
 								}
@@ -146,11 +149,11 @@ fn on_event(e &gg.Event, mut app App) {
 								if inv != 'notenough' && inv != 'nodirt' {
 									app.inv[inv[0]] = conv(inv[1..5].bytes())
 									if app.map[i][j] != 255 {
+										println(app.map[i][j])
 										replaced := app.con.read_line()#[..-1]
 										app.inv[replaced[0]] = conv(replaced[1..5].bytes())
 									}
-									map_ := app.con.read_line()#[..-1]
-									app.map[i][j] = map_[2]
+									app.map[i][j] = app.place
 									if app.place >= 1 && app.place <= 78 {
 										app.ping = 0
 									}
