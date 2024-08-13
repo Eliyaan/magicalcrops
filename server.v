@@ -112,6 +112,7 @@ fn server_handle(mut ses net.TcpConn) {
 						if i+10 < 100 && map_[i+10] == 254 {
 							growth_time := 100 * 60 * math.factorial(data[2] / 10 + 1)
 							seeds << int(growth_time + time.now().unix()).str()
+							// TODO check growth pulser
 							// TODO write seed to file
 						} else {
 							ses.write_string('nodirt\n') or { panic(err) }
@@ -128,6 +129,8 @@ fn server_handle(mut ses net.TcpConn) {
 						ses.write_string('${map_[i].ascii_str()}${cback(inv[map_[i]])}\n') or {
 							panic(err)
 						}
+						
+						// TODO remove seed time if seed
 					}
 					// update serv map
 					map_ = map_[..i] + data[2].ascii_str() + map_[i + 1..]
