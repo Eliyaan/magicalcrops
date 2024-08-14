@@ -92,7 +92,6 @@ fn server_handle(mut ses net.TcpConn) {
 			a := ses.read_line()#[..-1]
 			if a == 'ping' {
 				mut send := ""
-				println(seeds)
 				for s in seeds {
 					mut time_remaining := s.int() - time.now().unix()
 					if time_remaining < 0 {
@@ -149,10 +148,8 @@ fn server_handle(mut ses net.TcpConn) {
 					ses.write_string('notenough\n') or { panic(err) }
 				}
 			} else if a#[..4] == 'harv' {
-				println("harv ${seeds[a[4]].int() - time.now().unix()}")
 				if seeds[a[4]].int() - time.now().unix() <= 0 {
 					mut count := u8(0)
-					println(a[4])
 					for i in 0..100 {
 						if map_[i] >= 1 && map_[i] <= 78 {
 							count += 1

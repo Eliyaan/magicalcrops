@@ -74,7 +74,6 @@ fn on_frame(mut app App) {
 		r := app.con.read_line()#[..-1]
 		if r != 'no' {
 			app.seeds = r.split(',')#[..-1].map(it.int())
-		println(app.seeds)
 		}
 	}
 	app.ping++
@@ -173,7 +172,6 @@ fn on_event(e &gg.Event, mut app App) {
 									}
 								}
 							} else if app.map[i][j] >= 1 && app.map[i][j] <= 78 {
-								println("try harvest")
 								mut count := u8(0)
 								for k in 0 .. i {
 									for l in 0 .. 10 {
