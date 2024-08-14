@@ -54,9 +54,9 @@ fn main() {
 	)
 	file_name := os.input('enter you passcode:')
 	app.con.write_string('${file_name}\n')!
+	map_ := app.con.read_line()[0..100]
 	for i in 0 .. 10 {
-		map_line := app.con.read_line()[0..10]
-		for j, ch in map_line {
+		for j, ch in map_[i*10..(i+1)*10] {
 			app.map[i][j] = ch
 		}
 	}
@@ -74,6 +74,7 @@ fn on_frame(mut app App) {
 		r := app.con.read_line()#[..-1]
 		if r != 'no' {
 			app.seeds = r.split(',')#[..-1].map(it.int())
+		println(app.seeds)
 		}
 	}
 	app.ping++
@@ -159,11 +160,38 @@ fn on_event(e &gg.Event, mut app App) {
 										println(app.map[i][j])
 										replaced := app.con.read_line()#[..-1]
 										app.inv[replaced[0]] = conv(replaced[1..5].bytes())
+										if app.map[i][j] >= 1 && app.map[i][j] <= 78 {
+											app.seeds.delete(replaced[5])
+										}
 									}
 									app.map[i][j] = app.place
 									if app.place >= 1 && app.place <= 78 {
 										app.ping = 0
 									}
+									if app.inv[inv[0]] == 0 {
+										app.place = 0
+									}
+								}
+							} else if app.map[i][j] >= 1 && app.map[i][j] <= 78 {
+								println("try harvest")
+								mut count := u8(0)
+								for k in 0 .. i {
+									for l in 0 .. 10 {
+										if app.map[k][l] >= 1 && app.map[k][l] <= 78 {
+											count += 1
+										}
+									}
+								}
+								for k in 0 .. j {
+									if app.map[i][k] >= 1 && app.map[i][k] <= 78 {
+										count += 1
+									}
+								}
+								if app.seeds[count] == 0 {
+									app.con.write_string('harv${count.ascii_str()}\n') or {panic(err)}
+									a := app.con.read_line()#[..-1]
+									app.inv[a[0]] = conv(a[1..5].bytes())
+									app.ping = 0
 								}
 							}
 							return

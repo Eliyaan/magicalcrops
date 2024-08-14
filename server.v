@@ -63,11 +63,11 @@ fn server_handle(mut ses net.TcpConn) {
 	}
 	// auth
 	file_name := 'saves/${ses.read_line()#[..-1]}'
-	ses.set_read_timeout(time.second*5)
+	ses.set_read_timeout(time.second)
 	if file_name != 'saves/' {
 		if !os.exists(file_name) {
 			os.write_file(file_name + 'seed', '') or { panic(err) }
-			os.write_file(file_name + 'map', '${'${u8(255).ascii_str():10r}\n':10r}') or {
+			os.write_file(file_name + 'map', '${u8(255).ascii_str():100r}') or {
 				panic(err)
 			}
 			mut a := []u8{len: 256 * 4, init: 0}
@@ -78,7 +78,7 @@ fn server_handle(mut ses net.TcpConn) {
 		mut seeds := os.read_lines(file_name + 'seed') or { panic(err) }
 		// send data from the save
 		mut map_ := os.read_file(file_name + 'map') or { panic(err) }
-		ses.write_string(map_) or { panic(err) }
+		ses.write_string(map_+'\n') or { panic(err) }
 		mut inv_ := os.read_file(file_name + 'inv') or { panic(err) }
 		ses.write_string(inv_ + '\n') or { panic(err) }
 		mut inv := []int{len: 256}
@@ -92,6 +92,7 @@ fn server_handle(mut ses net.TcpConn) {
 			a := ses.read_line()#[..-1]
 			if a == 'ping' {
 				mut send := ""
+				println(seeds)
 				for s in seeds {
 					mut time_remaining := s.int() - time.now().unix()
 					if time_remaining < 0 {
@@ -115,6 +116,7 @@ fn server_handle(mut ses net.TcpConn) {
 							// TODO check growth pulser
 							// TODO write seed to file
 						} else {
+							println('no dirt${i}')
 							ses.write_string('nodirt\n') or { panic(err) }
 							continue
 						}
@@ -126,17 +128,45 @@ fn server_handle(mut ses net.TcpConn) {
 					}
 					if map_[i] != 255 {
 						inv[map_[i]] += 1
-						ses.write_string('${map_[i].ascii_str()}${cback(inv[map_[i]])}\n') or {
+						mut count := u8(0)
+						if map_[i] >= 1 && map_[i] <= 78 {
+							for j in 0..i {
+								if map_[j] >= 1 && map_[j] <= 78 {
+									count += 1
+								}
+							}
+							seeds.delete(count)
+						}
+						ses.write_string('${map_[i].ascii_str()}${cback(inv[map_[i]])}${count.ascii_str()}\n') or {
 							panic(err)
 						}
-						
-						// TODO remove seed time if seed
+						// TODO write to file
 					}
 					// update serv map
 					map_ = map_[..i] + data[2].ascii_str() + map_[i + 1..]
 					// TODO write to map file
 				} else {
 					ses.write_string('notenough\n') or { panic(err) }
+				}
+			} else if a#[..4] == 'harv' {
+				println("harv ${seeds[a[4]].int() - time.now().unix()}")
+				if seeds[a[4]].int() - time.now().unix() <= 0 {
+					mut count := u8(0)
+					println(a[4])
+					for i in 0..100 {
+						if map_[i] >= 1 && map_[i] <= 78 {
+							count += 1
+							if count == a[4] + 1 {
+								seeds[a[4]] = (100 * 60 * int(math.factorial(map_[i] / 10 + 1)) + time.now().unix()).str()
+								inv[161] += 1
+								ses.write_string('${u8(1).ascii_str()}${cback(inv[1])}\n') or {
+									panic(err)
+								}
+								// TODO the right color&amount of ess + rnd seed
+								break
+							}
+						}
+					}
 				}
 			} else if a == '' {
 				println('client gone')
@@ -155,7 +185,7 @@ fn main() {
 		spawn server_handle(mut session)
 	}
 }
-
+ 
 fn remaining(t int) int {
 	mut time_remaining := t - time.now().unix()
 	if time_remaining < 0 {
