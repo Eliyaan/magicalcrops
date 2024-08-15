@@ -114,11 +114,16 @@ fn server_handle(mut ses net.TcpConn) {
 					if data[2] >= 1 && data[2] <= 78 {
 						if i + 10 < 100 && map_[i + 10] == 254 {
 							growth_time := 2 // 100 * 60 * math.factorial(data[2] / 10 + 1)
-							seeds << int(growth_time + time.now().unix()).str()
+							mut count := 0
+							for j in 0 .. i {
+								if map_[j] >= 1 && map_[j] <= 78 {
+									count += 1
+								}
+							}
+							seeds.insert(count, int(growth_time + time.now().unix()).str())
 							// TODO check growth pulser
 							// TODO write seed to file
 						} else {
-							println('no dirt${i}')
 							ses.write_string('nodirt\n') or { panic(err) }
 							continue
 						}
@@ -138,7 +143,11 @@ fn server_handle(mut ses net.TcpConn) {
 									count += 1
 								}
 							}
-							seeds.delete(count)
+							if data[2] >= 1 && data[2] <= 78 {
+								seeds.delete(count+1) // because inserted one
+ 							} else {
+								seeds.delete(count)
+							}
 						}
 						ses.write_string('${count.ascii_str()}${map_[i].ascii_str()}${inv[map_[i]]}\n') or {
 							panic(err)
@@ -166,7 +175,7 @@ fn server_handle(mut ses net.TcpConn) {
 								if rand.int_in_range(0, 10) or { panic(err) } == 0 {
 									seed = map_[i]
 								}
-								ses.write_string('${u8(ess).ascii_str()}${cback(inv[ess])}${seed.ascii_str()}\n') or {
+								ses.write_string('${seed.ascii_str()}${u8(ess).ascii_str()}${inv[ess]}\n') or {
 									panic(err)
 								}
 								break

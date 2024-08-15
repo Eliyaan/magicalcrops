@@ -10,6 +10,8 @@ const place_color = gg.Color{100, 100, 100, 255}
 union Conv {
 	a int
 	b [4]u8
+}
+
 struct App {
 mut:
 	ctx        &gg.Context = unsafe { nil }
@@ -33,6 +35,9 @@ fn conv(a []u8) int {
 		Conv{
 			b: a_
 		}.a
+	}
+}
+
 fn load_seed_tx(mut ctx gg.Context) [][]gg.Image {
 	mut r := [][]gg.Image{len: 8, init: []gg.Image{cap: 8}}
 	for i, mut lvl in r {
@@ -147,7 +152,6 @@ fn on_frame(mut app App) {
 
 fn on_event(e &gg.Event, mut app App) {
 	if e.char_code != 0 {
-		println(e.char_code)
 	}
 	match e.typ {
 		.key_down {
@@ -173,7 +177,6 @@ fn on_event(e &gg.Event, mut app App) {
 					for j in 0 .. 10 {
 						if e.mouse_x < (j + 1) * tile {
 							if app.place > 0 {
-								println(app.place)
 								app.con.write_string('place${u8(j).ascii_str()}${u8(i).ascii_str()}${u8(app.place).ascii_str()}\n') or {
 									panic(err)
 								}
@@ -181,7 +184,6 @@ fn on_event(e &gg.Event, mut app App) {
 								if inv != 'notenough' && inv != 'nodirt' {
 									app.inv[inv[0]] = inv[1..].int()
 									if app.map[i][j] != 255 {
-										println(app.map[i][j])
 										replaced := app.con.read_line()#[..-1]
 										app.inv[replaced[1]] = replaced[2..].int()
 										if app.map[i][j] >= 1 && app.map[i][j] <= 78 {
@@ -197,6 +199,7 @@ fn on_event(e &gg.Event, mut app App) {
 									}
 								}
 							} else if app.map[i][j] >= 1 && app.map[i][j] <= 78 {
+								// Harvest
 								mut count := u8(0)
 								for k in 0 .. i {
 									for l in 0 .. 10 {
@@ -215,9 +218,9 @@ fn on_event(e &gg.Event, mut app App) {
 										panic(err)
 									}
 									a := app.con.read_line()#[..-1]
-									app.inv[a[0]] = conv(a[1..5].bytes())
-									if a[5] != 0 {
-										app.inv[a[5]] += 1
+									app.inv[a[1]] = a[2..].int()
+									if a[0] != 0 {
+										app.inv[a[0]] += 1
 									}
 									app.ping = 0
 								}
