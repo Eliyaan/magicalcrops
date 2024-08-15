@@ -1,4 +1,5 @@
 import time
+import rand
 import math
 import os
 import net
@@ -155,11 +156,16 @@ fn server_handle(mut ses net.TcpConn) {
 							count += 1
 							if count == a[4] + 1 {
 								seeds[a[4]] = (100 * 60 * int(math.factorial(map_[i] / 10 + 1)) + time.now().unix()).str()
-								inv[161] += 1
-								ses.write_string('${u8(1).ascii_str()}${cback(inv[1])}\n') or {
+								ess := 161 + map_[i]/10*10
+								inv[ess] += int(math.factorial(map_[i]%10))
+								mut seed := u8(0)
+								if rand.int_in_range(0, 10) == 0 {
+									seed = map_[i]
+								}
+								// TODO rnd seed
+								ses.write_string('${u8(ess).ascii_str()}${cback(inv[ess])}${seed.ascii_str()}\n') or {
 									panic(err)
 								}
-								// TODO the right color&amount of ess + rnd seed
 								break
 							}
 						}
