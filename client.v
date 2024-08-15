@@ -181,7 +181,7 @@ fn on_event(e &gg.Event, mut app App) {
 									panic(err)
 								}
 								inv := app.con.read_line()#[..-1]
-								if inv != 'notenough' && inv != 'nodirt' {
+								if inv != 'notenough' && inv != 'nodirt' && inv != 'planted!' {
 									app.inv[inv[0]] = inv[1..].int()
 									if app.map[i][j] != 255 {
 										replaced := app.con.read_line()#[..-1]

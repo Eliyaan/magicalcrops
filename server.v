@@ -110,6 +110,7 @@ fn server_handle(mut ses net.TcpConn) {
 				data := a[5..]
 				if inv[data[2]] > 0 {
 					i := data[0] + data[1] * 10
+					if !(i >= 10 && map_[i-10] >= 1 && map_[i-10] <= 78) {
 					// for seed planting
 					if data[2] >= 1 && data[2] <= 78 {
 						if i + 10 < 100 && map_[i + 10] == 254 {
@@ -157,6 +158,9 @@ fn server_handle(mut ses net.TcpConn) {
 					// update serv map
 					map_ = map_[..i] + data[2].ascii_str() + map_[i + 1..]
 					// TODO write to map file
+					} else {
+					ses.write_string('planted!\n') or { panic(err) }
+					}
 				} else {
 					ses.write_string('notenough\n') or { panic(err) }
 				}
