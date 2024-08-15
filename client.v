@@ -4,11 +4,27 @@ import os
 import gg
 
 const tile = 40
+const item = 16
 const place_color = gg.Color{100, 100, 100, 255}
 
 union Conv {
 	a int
 	b [4]u8
+struct App {
+mut:
+	ctx        &gg.Context = unsafe { nil }
+	con        net.TcpConn
+	ping       int
+	seeds      []int
+	seed_tx    [][]gg.Image
+	compost_tx gg.Image
+	dirt_tx    gg.Image
+	dirtbit_tx gg.Image
+	ess_tx     [][]gg.Image
+	map        [][]u8 = [][]u8{len: 10, init: []u8{len: 10}}
+	inv        []int  = []int{len: 256}
+	inv_lvl    int
+	place      u8
 }
 
 fn conv(a []u8) int {
@@ -17,22 +33,28 @@ fn conv(a []u8) int {
 		Conv{
 			b: a_
 		}.a
+fn load_seed_tx(mut ctx gg.Context) [][]gg.Image {
+	mut r := [][]gg.Image{len: 8, init: []gg.Image{cap: 8}}
+	for i, mut lvl in r {
+		for j in 0 .. 8 {
+			lvl << ctx.create_image('sprites/seed${i + 1}${j + 1}.png') or { panic(err) }
+		}
 	}
+	return r
 }
 
-struct App {
-mut:
-	ctx     &gg.Context = unsafe { nil }
-	con     net.TcpConn
-	ping    int
-	seeds   []int
-	map     [][]u8 = [][]u8{len: 10, init: []u8{len: 10}}
-	inv     []int  = []int{len: 256}
-	inv_lvl int
-	place   u8
+fn load_ess_tx(mut ctx gg.Context) [][]gg.Image {
+	mut r := [][]gg.Image{len: 8, init: []gg.Image{cap: 8}}
+	for i, mut lvl in r {
+		for j in 0 .. 8 {
+			lvl << ctx.create_image('sprites/ess${i + 1}${j + 1}.png') or { panic(err) }
+		}
+	}
+	return r
 }
 
 fn main() {
+	file_name := os.input('enter you passcode:')
 	mut app := &App{
 		con: net.dial_tcp('127.0.0.0:40001')!
 	}
@@ -52,11 +74,15 @@ fn main() {
 		event_fn: on_event
 		sample_count: 2
 	)
-	file_name := os.input('enter you passcode:')
+	app.seed_tx = load_seed_tx(mut app.ctx)
+	app.ess_tx = load_ess_tx(mut app.ctx)
+	app.compost_tx = app.ctx.create_image('sprites/compost.png')!
+	app.dirt_tx = app.ctx.create_image('sprites/dirt.png')!
+	app.dirtbit_tx = app.ctx.create_image('sprites/dirtbit.png')!
 	app.con.write_string('${file_name}\n')!
 	map_ := app.con.read_line()[0..100]
 	for i in 0 .. 10 {
-		for j, ch in map_[i*10..(i+1)*10] {
+		for j, ch in map_[i * 10..(i + 1) * 10] {
 			app.map[i][j] = ch
 		}
 	}
@@ -82,24 +108,23 @@ fn on_frame(mut app App) {
 	mut seed_nb := 0
 	for i in 0 .. 10 {
 		for j in 0 .. 10 {
-			color := match app.map[i][j] {
-				255 { gg.Color{0, 0, 0, 0} }
-				254 { gg.Color{79, 30, 16, 255} }
-				1, 2, 3, 4, 5, 6, 7, 8 { gg.Color{0, 255, 0, 255} }
-				11, 12, 13, 14, 15, 16, 17, 18 { gg.Color{255, 144, 33, 255} }
-				21, 22, 23, 24, 25, 26, 27, 28 { gg.Color{255, 15, 43, 255} }
-				31, 32, 33, 34, 35, 36, 37, 38 { gg.Color{255, 150, 215, 255} }
-				41, 42, 43, 44, 45, 46, 47, 48 { gg.Color{102, 255, 204, 255} }
-				51, 52, 53, 54, 55, 56, 57, 58 { gg.Color{51, 163, 255, 255} }
-				61, 62, 63, 64, 65, 66, 67, 68 { gg.Color{18, 4, 12, 255} }
-				71, 72, 73, 74, 75, 76, 77, 78 { gg.Color{211, 3, 252, 255} }
-// TODO: add the other & sprites
-				else { gg.Color{255, 0, 0, 255} }
-			}
-			app.ctx.draw_square_filled(j * tile, i * tile, tile, color)
-			if app.map[i][j] >= 1 && app.map[i][j] <= 78 && app.seeds.len > 0 {
-				app.ctx.draw_text_def(j*tile, i*tile, app.seeds[seed_nb].str())
-				seed_nb++
+			elem := app.map[i][j]
+			if elem >= 1 && elem <= 78 {
+				app.ctx.draw_image(j * tile, i * tile, tile, tile, app.seed_tx[elem / 10][elem % 10 - 1])
+				if app.seeds.len > 0 {
+					app.ctx.draw_text_def(j * tile, i * tile, app.seeds[seed_nb].str())
+					seed_nb++
+				}
+			} else if elem >= 161 && elem <= 238 {
+				app.ctx.draw_image(j * tile, i * tile, tile, tile, app.ess_tx[elem / 10 - 16][elem % 10 - 1])
+			} else if elem != 255 {
+				tx := match elem {
+					254 { app.dirt_tx }
+					253 { app.compost_tx }
+					252 { app.dirtbit_tx }
+					else { panic('texture not supported') }
+				}
+				app.ctx.draw_image(j * tile, i * tile, tile, tile, tx)
 			}
 		}
 	}
@@ -154,13 +179,13 @@ fn on_event(e &gg.Event, mut app App) {
 								}
 								inv := app.con.read_line()#[..-1]
 								if inv != 'notenough' && inv != 'nodirt' {
-									app.inv[inv[0]] = conv(inv[1..5].bytes())
+									app.inv[inv[0]] = inv[1..].int()
 									if app.map[i][j] != 255 {
 										println(app.map[i][j])
 										replaced := app.con.read_line()#[..-1]
-										app.inv[replaced[0]] = conv(replaced[1..5].bytes())
+										app.inv[replaced[1]] = replaced[2..].int()
 										if app.map[i][j] >= 1 && app.map[i][j] <= 78 {
-											app.seeds.delete(replaced[5])
+											app.seeds.delete(replaced[0])
 										}
 									}
 									app.map[i][j] = app.place
@@ -186,7 +211,9 @@ fn on_event(e &gg.Event, mut app App) {
 									}
 								}
 								if app.seeds[count] == 0 {
-									app.con.write_string('harv${count.ascii_str()}\n') or {panic(err)}
+									app.con.write_string('harv${count.ascii_str()}\n') or {
+										panic(err)
+									}
 									a := app.con.read_line()#[..-1]
 									app.inv[a[0]] = conv(a[1..5].bytes())
 									if a[5] != 0 {

@@ -68,18 +68,16 @@ fn server_handle(mut ses net.TcpConn) {
 	if file_name != 'saves/' {
 		if !os.exists(file_name) {
 			os.write_file(file_name + 'seed', '') or { panic(err) }
-			os.write_file(file_name + 'map', '${u8(255).ascii_str():100r}') or {
-				panic(err)
-			}
+			os.write_file(file_name + 'map', '${u8(255).ascii_str():100r}') or { panic(err) }
 			mut a := []u8{len: 256 * 4, init: 0}
-			a[254 * 4] = 2
-			a[1 * 4] = 2 // TODO: give/descendance system
+			a[254 * 4] = 20
+			a[1 * 4] = 20 // TODO: give/descendance system
 			os.write_file(file_name + 'inv', a.bytestr()) or { panic(err) }
 		}
 		mut seeds := os.read_lines(file_name + 'seed') or { panic(err) }
 		// send data from the save
 		mut map_ := os.read_file(file_name + 'map') or { panic(err) }
-		ses.write_string(map_+'\n') or { panic(err) }
+		ses.write_string(map_ + '\n') or { panic(err) }
 		mut inv_ := os.read_file(file_name + 'inv') or { panic(err) }
 		ses.write_string(inv_ + '\n') or { panic(err) }
 		mut inv := []int{len: 256}
@@ -89,10 +87,13 @@ fn server_handle(mut ses net.TcpConn) {
 
 		// wait for requests if needed
 		for {
-			ses.wait_for_read() or { println(err);break }
+			ses.wait_for_read() or {
+				println(err)
+				break
+			}
 			a := ses.read_line()#[..-1]
 			if a == 'ping' {
-				mut send := ""
+				mut send := ''
 				for s in seeds {
 					mut time_remaining := s.int() - time.now().unix()
 					if time_remaining < 0 {
@@ -101,7 +102,7 @@ fn server_handle(mut ses net.TcpConn) {
 					send = send + time_remaining.str() + ','
 				}
 				if send == '' {
-					ses.write_string('no\n') or {panic(err)}
+					ses.write_string('no\n') or { panic(err) }
 				} else {
 					ses.write_string('${send}\n') or { panic(err) }
 				}
@@ -109,9 +110,10 @@ fn server_handle(mut ses net.TcpConn) {
 				data := a[5..]
 				if inv[data[2]] > 0 {
 					i := data[0] + data[1] * 10
+					// for seed planting
 					if data[2] >= 1 && data[2] <= 78 {
-						if i+10 < 100 && map_[i+10] == 254 {
-							growth_time := 100 * 60 * math.factorial(data[2] / 10 + 1)
+						if i + 10 < 100 && map_[i + 10] == 254 {
+							growth_time := 2 // 100 * 60 * math.factorial(data[2] / 10 + 1)
 							seeds << int(growth_time + time.now().unix()).str()
 							// TODO check growth pulser
 							// TODO write seed to file
@@ -123,21 +125,22 @@ fn server_handle(mut ses net.TcpConn) {
 					}
 					inv[data[2]] -= 1
 					// update client inv
-					ses.write_string('${data[2].ascii_str()}${cback(inv[data[2]])}\n') or {
+					ses.write_string('${data[2].ascii_str()}${inv[data[2]]}\n') or {
 						panic(err)
 					}
+					// for replacing
 					if map_[i] != 255 {
 						inv[map_[i]] += 1
 						mut count := u8(0)
 						if map_[i] >= 1 && map_[i] <= 78 {
-							for j in 0..i {
+							for j in 0 .. i {
 								if map_[j] >= 1 && map_[j] <= 78 {
 									count += 1
 								}
 							}
 							seeds.delete(count)
 						}
-						ses.write_string('${map_[i].ascii_str()}${cback(inv[map_[i]])}${count.ascii_str()}\n') or {
+						ses.write_string('${count.ascii_str()}${map_[i].ascii_str()}${inv[map_[i]]}\n') or {
 							panic(err)
 						}
 						// TODO write to file
@@ -151,18 +154,18 @@ fn server_handle(mut ses net.TcpConn) {
 			} else if a#[..4] == 'harv' {
 				if seeds[a[4]].int() - time.now().unix() <= 0 {
 					mut count := u8(0)
-					for i in 0..100 {
+					for i in 0 .. 100 {
 						if map_[i] >= 1 && map_[i] <= 78 {
 							count += 1
 							if count == a[4] + 1 {
-								seeds[a[4]] = (100 * 60 * int(math.factorial(map_[i] / 10 + 1)) + time.now().unix()).str()
-								ess := 161 + map_[i]/10*10
-								inv[ess] += int(math.factorial(map_[i]%10))
+								seeds[a[4]] = (100 * 60 * int(math.factorial(map_[i] / 10 + 1)) +
+									time.now().unix()).str()
+								ess := 161 + map_[i] / 10 * 10
+								inv[ess] += int(math.factorial(map_[i] % 10))
 								mut seed := u8(0)
-								if rand.int_in_range(0, 10) == 0 {
+								if rand.int_in_range(0, 10) or { panic(err) } == 0 {
 									seed = map_[i]
 								}
-								// TODO rnd seed
 								ses.write_string('${u8(ess).ascii_str()}${cback(inv[ess])}${seed.ascii_str()}\n') or {
 									panic(err)
 								}
@@ -188,7 +191,7 @@ fn main() {
 		spawn server_handle(mut session)
 	}
 }
- 
+
 fn remaining(t int) int {
 	mut time_remaining := t - time.now().unix()
 	if time_remaining < 0 {
