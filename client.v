@@ -29,7 +29,7 @@ mut:
 	inv_lvl    int
 	place      u8
 	mouse_x    f32
-	mouse_y	   f32
+	mouse_y    f32
 }
 
 fn conv(a []u8) int {
@@ -144,19 +144,22 @@ fn on_frame(mut app App) {
 
 	app.ctx.draw_text_def(21 * tile, 5, app.inv[252].str())
 	app.ctx.draw_image(20 * tile, 5, item, item, app.dirtbit_tx)
-	
+
 	// remove elem
 	app.ctx.draw_square_filled(24 * tile, 5, item, place_color)
 	for i in 0 .. 8 {
-		app.ctx.draw_text_def(13 * tile, 5 + item_spacing * (i+1), app.inv[1 + i + app.inv_lvl * 10].str())
-		app.ctx.draw_image(12 * tile, 5 + item_spacing * (i+1), item, item, app.seed_tx[app.inv_lvl][i])
-	
-		app.ctx.draw_text_def(17 * tile, 5 + item_spacing * (i+1), app.inv[161 + i + app.inv_lvl * 10].str())
-		app.ctx.draw_image(16 * tile, 5 + item_spacing * (i+1), item, item, app.ess_tx[app.inv_lvl][i])
+		app.ctx.draw_text_def(13 * tile, 5 + item_spacing * (i + 1), app.inv[1 + i +
+			app.inv_lvl * 10].str())
+		app.ctx.draw_image(12 * tile, 5 + item_spacing * (i + 1), item, item, app.seed_tx[app.inv_lvl][i])
 
-		app.ctx.draw_text_def(21 * tile, 5 + item_spacing * (i+1), app.inv[81 + i + app.inv_lvl * 10].str())
-// TODO texture GP		app.ctx.draw_image(12 * tile, 35 + 30 * i, item, item, app.)
-		app.ctx.draw_square_filled(20 * tile, 5 + item_spacing * (i+1), item, place_color)
+		app.ctx.draw_text_def(17 * tile, 5 + item_spacing * (i + 1), app.inv[161 + i +
+			app.inv_lvl * 10].str())
+		app.ctx.draw_image(16 * tile, 5 + item_spacing * (i + 1), item, item, app.ess_tx[app.inv_lvl][i])
+
+		app.ctx.draw_text_def(21 * tile, 5 + item_spacing * (i + 1), app.inv[81 + i +
+			app.inv_lvl * 10].str())
+		// TODO texture GP		app.ctx.draw_image(12 * tile, 35 + 30 * i, item, item, app.)
+		app.ctx.draw_square_filled(20 * tile, 5 + item_spacing * (i + 1), item, place_color)
 	}
 	if app.place != 0 {
 		elem := app.place
@@ -279,15 +282,21 @@ fn on_event(e &gg.Event, mut app App) {
 				return
 			}
 			for i in 0 .. 8 {
-				if square_click(12 * tile, 5 + item_spacing * (i+1), item, e.mouse_x, e.mouse_y) {
+				if square_click(12 * tile, 5 + item_spacing * (i + 1), item, e.mouse_x,
+					e.mouse_y)
+				{
 					app.place = u8(1 + i + app.inv_lvl * 10)
 					return
 				}
-				if square_click(16 * tile, 5 + item_spacing * (i+1), item, e.mouse_x, e.mouse_y) {
+				if square_click(16 * tile, 5 + item_spacing * (i + 1), item, e.mouse_x,
+					e.mouse_y)
+				{
 					app.place = u8(161 + i + app.inv_lvl * 10)
 					return
 				}
-				if square_click(20 * tile, 5 + item_spacing * (i+1), item, e.mouse_x, e.mouse_y) {
+				if square_click(20 * tile, 5 + item_spacing * (i + 1), item, e.mouse_x,
+					e.mouse_y)
+				{
 					app.place = u8(81 + i + app.inv_lvl * 10)
 					return
 				}
