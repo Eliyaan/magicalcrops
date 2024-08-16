@@ -33,6 +33,78 @@ import net
 // 221 228 black
 // 231 238 violet
 
+const crafts = {
+	u8(1): [[ItemQt{161, 8}]]
+	u8(2): [[ItemQt{161, 8}, ItemQt{1, 1}]]
+	u8(3): [[ItemQt{162, 8}, ItemQt{2, 1}]]
+	u8(4): [[ItemQt{163, 8}, ItemQt{3, 1}]]
+	u8(5): [[ItemQt{164, 8}, ItemQt{4, 1}]]
+	u8(6): [[ItemQt{165, 8}, ItemQt{5, 1}]]
+	u8(7): [[ItemQt{166, 8}, ItemQt{6, 1}]]
+	u8(8): [[ItemQt{167, 8}, ItemQt{7, 1}]]
+	u8(11): [[ItemQt{168, 8}, ItemQt{8, 1}]]
+	u8(12): [[ItemQt{171, 8}, ItemQt{11, 1}]]
+	u8(13): [[ItemQt{172, 8}, ItemQt{12, 1}]]
+	u8(14): [[ItemQt{173, 8}, ItemQt{13, 1}]]
+	u8(15): [[ItemQt{174, 8}, ItemQt{14, 1}]]
+	u8(16): [[ItemQt{175, 8}, ItemQt{15, 1}]]
+	u8(17): [[ItemQt{176, 8}, ItemQt{16, 1}]]
+	u8(18): [[ItemQt{177, 8}, ItemQt{17, 1}]]
+	u8(21): [[ItemQt{178, 8}, ItemQt{18, 1}]]
+	u8(22): [[ItemQt{181, 8}, ItemQt{21, 1}]]
+	u8(23): [[ItemQt{182, 8}, ItemQt{22, 1}]]
+	u8(24): [[ItemQt{183, 8}, ItemQt{23, 1}]]
+	u8(25): [[ItemQt{184, 8}, ItemQt{24, 1}]]
+	u8(26): [[ItemQt{185, 8}, ItemQt{25, 1}]]
+	u8(27): [[ItemQt{186, 8}, ItemQt{26, 1}]]
+	u8(28): [[ItemQt{187, 8}, ItemQt{27, 1}]]
+	u8(31): [[ItemQt{188, 8}, ItemQt{28, 1}]]
+	u8(32): [[ItemQt{191, 8}, ItemQt{31, 1}]]
+	u8(33): [[ItemQt{192, 8}, ItemQt{32, 1}]]
+	u8(34): [[ItemQt{193, 8}, ItemQt{33, 1}]]
+	u8(35): [[ItemQt{194, 8}, ItemQt{34, 1}]]
+	u8(36): [[ItemQt{195, 8}, ItemQt{35, 1}]]
+	u8(37): [[ItemQt{196, 8}, ItemQt{36, 1}]]
+	u8(38): [[ItemQt{197, 8}, ItemQt{37, 1}]]
+	u8(41): [[ItemQt{198, 8}, ItemQt{38, 1}]]
+	u8(42): [[ItemQt{201, 8}, ItemQt{41, 1}]]
+	u8(43): [[ItemQt{202, 8}, ItemQt{42, 1}]]
+	u8(44): [[ItemQt{203, 8}, ItemQt{43, 1}]]
+	u8(45): [[ItemQt{204, 8}, ItemQt{44, 1}]]
+	u8(46): [[ItemQt{205, 8}, ItemQt{45, 1}]]
+	u8(47): [[ItemQt{206, 8}, ItemQt{46, 1}]]
+	u8(48): [[ItemQt{207, 8}, ItemQt{47, 1}]]
+	u8(51): [[ItemQt{208, 8}, ItemQt{48, 1}]]
+	u8(52): [[ItemQt{211, 8}, ItemQt{51, 1}]]
+	u8(53): [[ItemQt{212, 8}, ItemQt{52, 1}]]
+	u8(54): [[ItemQt{213, 8}, ItemQt{53, 1}]]
+	u8(55): [[ItemQt{214, 8}, ItemQt{54, 1}]]
+	u8(56): [[ItemQt{215, 8}, ItemQt{55, 1}]]
+	u8(57): [[ItemQt{216, 8}, ItemQt{56, 1}]]
+	u8(58): [[ItemQt{217, 8}, ItemQt{57, 1}]]
+	u8(61): [[ItemQt{218, 8}, ItemQt{58, 1}]]
+	u8(62): [[ItemQt{221, 8}, ItemQt{61, 1}]]
+	u8(63): [[ItemQt{222, 8}, ItemQt{62, 1}]]
+	u8(64): [[ItemQt{223, 8}, ItemQt{63, 1}]]
+	u8(65): [[ItemQt{224, 8}, ItemQt{64, 1}]]
+	u8(66): [[ItemQt{225, 8}, ItemQt{65, 1}]]
+	u8(67): [[ItemQt{226, 8}, ItemQt{66, 1}]]
+	u8(68): [[ItemQt{227, 8}, ItemQt{67, 1}]]
+	u8(71): [[ItemQt{228, 8}, ItemQt{68, 1}]]
+	u8(72): [[ItemQt{231, 8}, ItemQt{71, 1}]]
+	u8(73): [[ItemQt{232, 8}, ItemQt{72, 1}]]
+	u8(74): [[ItemQt{233, 8}, ItemQt{73, 1}]]
+	u8(75): [[ItemQt{234, 8}, ItemQt{74, 1}]]
+	u8(76): [[ItemQt{235, 8}, ItemQt{75, 1}]]
+	u8(77): [[ItemQt{236, 8}, ItemQt{76, 1}]]
+	u8(78): [[ItemQt{237, 8}, ItemQt{77, 1}]]
+}
+
+struct ItemQt {
+	i u8
+	q u8
+}
+
 union Conv {
 	a int
 	b [4]u8
