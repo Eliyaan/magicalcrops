@@ -430,6 +430,33 @@ fn server_handle(mut ses net.TcpConn) {
 						}
 					}
 				}
+			} else if a#[..5] == 'craft' {
+				recipe := crafts[a[5]][a[6]] // the right item w/ the right recipe
+				mut r := ''
+				if recipe[0] is ItemQt {
+					for item in recipe {
+						if inv[item.i] < item.q {
+							ses.write_string('notenough') or { panic(err) }
+							continue
+						}
+					}
+					for item in recipe {
+						inv[item.i] -= item.q
+						r = r + '${item.i.ascii_str()}${inv[item.i]},'
+					}
+					inv[a[5]] += 1
+					r = r + '${a[5].ascii_str()}${inv[a[5]]}'
+				} else {
+					if inv[recipe[0].i] == 0 {
+						ses.write_string('notenough') or { panic(err) }
+						continue
+					}
+					inv[recipe[0].i] -= 1
+					inv[a[5]] += recipe[0].q
+					r = '${recipe[0].i.ascii_str()}${inv[recipe[0].i]},'
+					r = r + '${a[5].ascii_str()}${inv[a[5]]}'
+				}
+				ses.write_string(r) or { panic(err) }
 			} else if a == '' {
 				println('client gone')
 				break
