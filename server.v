@@ -71,6 +71,7 @@ fn server_handle(mut ses net.TcpConn) {
 			os.write_file(file_name + 'map', '${u8(255).ascii_str():100r}') or { panic(err) }
 			mut a := []u8{len: 256 * 4, init: 0}
 			a[254 * 4] = 20
+			a[255*4] = 1 // air
 			a[1 * 4] = 20 // TODO: give/descendance system
 			os.write_file(file_name + 'inv', a.bytestr()) or { panic(err) }
 		}
@@ -129,7 +130,9 @@ fn server_handle(mut ses net.TcpConn) {
 							continue
 						}
 					}
-					inv[data[2]] -= 1
+					if data[2] != 255 {
+						inv[data[2]] -= 1
+					}
 					// update client inv
 					ses.write_string('${data[2].ascii_str()}${inv[data[2]]}\n') or {
 						panic(err)
