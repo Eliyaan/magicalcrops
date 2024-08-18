@@ -335,9 +335,10 @@ fn main() {
 			app.map[i][j] = ch
 		}
 	}
-	inv_ := app.con.read_line()[0..256 * 4]
+	mut inv_ := []u8{len:256*4}
+	app.con.read(mut inv_)!
 	for i in 0 .. 256 {
-		app.inv[i] = conv(inv_[i * 4..(i + 1) * 4].bytes())
+		app.inv[i] = conv(inv_[i * 4..(i + 1) * 4])
 	}
 	app.con.write_string('processing done\n')!
 	app.ctx.run()

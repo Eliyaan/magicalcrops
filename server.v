@@ -310,7 +310,7 @@ fn server_handle(mut ses net.TcpConn) {
 			os.write_file(file_name + 'seed', '') or { panic(err) }
 			os.write_file(file_name + 'map', '${u8(255).ascii_str():100r}') or { panic(err) }
 			mut a := []u8{len: 256 * 4, init: 0}
-			a[254 * 4] = 20
+			a[254 * 4] = 10
 			a[255 * 4] = 1 // air
 			a[1 * 4] = 20 // TODO: give/descendance system
 			os.write_file(file_name + 'inv', a.bytestr()) or { panic(err) }
@@ -320,7 +320,7 @@ fn server_handle(mut ses net.TcpConn) {
 		mut map_ := os.read_file(file_name + 'map') or { panic(err) }
 		ses.write_string(map_ + '\n') or { panic(err) }
 		mut inv_ := os.read_file(file_name + 'inv') or { panic(err) }
-		ses.write_string(inv_ + '\n') or { panic(err) }
+		ses.write(inv_.bytes()) or { panic(err) }
 		mut inv := []int{len: 256}
 		for i in 0 .. 256 {
 			inv[i] = conv(inv_[i * 4..(i + 1) * 4].bytes())
