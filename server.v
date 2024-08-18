@@ -265,12 +265,12 @@ type Craft = ItemQt | ItemRes
 
 struct ItemRes {
 	i u8
-	q u8
+	q u32
 }
 
 struct ItemQt {
 	i u8
-	q u8
+	q u32
 }
 
 union Conv {

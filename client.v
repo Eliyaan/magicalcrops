@@ -235,12 +235,12 @@ type Craft = ItemQt | ItemRes
 
 struct ItemRes {
 	i u8
-	q u8
+	q u32
 }
 
 struct ItemQt {
 	i u8
-	q u8
+	q u32
 }
 
 const tile = 40
@@ -414,9 +414,13 @@ fn on_frame(mut app App) {
 		for i, r in recipes {
 			app.draw_item(5 + i*item*5, 11*tile, app.craft)
 			app.ctx.draw_rect_filled(5 + i*item*5 + 1.5*f32(item), 11*tile, item*r.len, item, place_color)
+			if r[0] is ItemRes {
+				app.ctx.draw_text_def(5 + i*item*5, 11*tile, r[0].q.str())
+			}
 			for j, item_ in r {
 				if item_ is ItemQt {
 					app.draw_item(5 + i*item*5 + (f32(j)+1.5)*item, 11*tile, item_.i)
+					app.ctx.draw_text_def(int(5 + i*item*5 + (f32(j)+1.5)*item), 11*tile, item_.q.str())
 				} else if item_ is ItemRes {
 					app.draw_item(5 + i*item*5 + (f32(j)+1.5)*item, 11*tile, item_.i)
 				}
