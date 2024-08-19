@@ -456,7 +456,7 @@ fn server_handle(mut ses net.TcpConn) {
 					r = '${recipe[0].i.ascii_str()}${inv[recipe[0].i]},'
 					r = r + '${a[5].ascii_str()}${inv[a[5]]}'
 				}
-				ses.write_string(r) or { panic(err) }
+				ses.write_string(r+'\n') or { panic(err) }
 			} else if a == '' {
 				println('client gone')
 				break

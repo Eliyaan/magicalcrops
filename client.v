@@ -588,6 +588,45 @@ fn on_event(e &gg.Event, mut app App) {
 					return
 				}
 			}
+			if app.craft != 0 {
+				recipes := crafts[app.craft]
+				for i, r in recipes {
+					if square_click(5 + i*item*5, 11*tile, item, e.mouse_x, e.mouse_y) {
+						if r[0] is ItemRes {
+							if app.inv[r[0].i] < 1 {
+								return
+							}
+						} else {
+							for item_ in r {
+								if app.inv[item_.i] < item_.q {
+									return
+								}
+							}	
+						}
+						app.con.write_string('craft${app.craft.ascii_str()}${u8(i).ascii_str()}\n') or {panic(err)}
+						up := app.con.read_line()#[..-1].split(',')
+						if up[0] != 'notenough' {
+							for u in up {
+								app.inv[u[0]] = u[1..].int() 
+							}
+						}
+						return
+					}
+					for j, item_ in r {
+						if item_ is ItemQt {
+							if square_click(int(5 + i*item*5 + (f32(j)+1.5)*item), 11*tile, item, e.mouse_x, e.mouse_y) {
+									app.craft = item_.i
+									return
+							}
+						} else if item_ is ItemRes {
+							if square_click(int(5 + i*item*5 + (f32(j)+1.5)*item), 11*tile, item, e.mouse_x, e.mouse_y) {
+									app.craft = item_.i
+									return
+							}
+						}
+					}
+				}
+			}
 			// because if placed early return
 			app.place = 0
 		}
