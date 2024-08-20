@@ -355,7 +355,16 @@ fn server_handle(mut ses net.TcpConn) {
 						// for seed planting
 						if data[2] >= 1 && data[2] <= 78 {
 							if i + 10 < 100 && map_[i + 10] == 254 {
-								growth_time := 100 * 60 * math.factorial(data[2] / 10 + 1)
+								mut gp_reduc := 1.0
+								mut c := i
+								for c < 100 {
+									m := map_[c]
+									if m >= 81 && m <= 158 {
+										gp_reduc *= 1.0 - f32(m/10-8)*0.1 - f32(m%10)*0.01
+									}
+									c += 10
+								}
+								growth_time := (100 * 60 * math.factorial(data[2] / 10 + 1))*gp_reduc
 								mut count := 0
 								for j in 0 .. i {
 									if map_[j] >= 1 && map_[j] <= 78 {
@@ -414,7 +423,16 @@ fn server_handle(mut ses net.TcpConn) {
 						if map_[i] >= 1 && map_[i] <= 78 {
 							count += 1
 							if count == a[4] + 1 {
-								seeds[a[4]] = (100 * 60 * int(math.factorial(map_[i] / 10 + 1)) +
+								mut gp_reduc := 1.0
+								mut c := i
+								for c < 100 {
+									m := map_[c]
+									if m >= 81 && m <= 158 {
+										gp_reduc *= 1.0 - f32(m/10-8)*0.1 - f32(m%10)*0.01
+									}
+									c += 10
+								}
+								seeds[a[4]] = ((100 * 60 * int(math.factorial(map_[i] / 10 + 1)))*gp_reduc +
 									time.now().unix()).str()
 								ess := 161 + map_[i] / 10 * 10
 								inv[ess] += int(math.factorial(map_[i] % 10))
