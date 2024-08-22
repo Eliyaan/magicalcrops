@@ -297,33 +297,51 @@ fn cback(a int) string {
 
 fn server_handle(mut ses net.TcpConn) {
 	println('new session opened')
+	// auth
+	ses_name := ses.read_line()#[..-1]
+	dir_name := 'saves/${ses_name}'
+	files_name := '${dir_name}/${ses_name}'
 	defer {
 		println(time.now())
 		println('closing a session')
 		ses.close() or { panic(err) }
 	}
-	// auth
-	file_name := 'saves/${ses.read_line()#[..-1]}'
 	ses.set_read_timeout(time.second)
-	if file_name != 'saves/' {
-		if !os.exists(file_name) {
-			os.write_file(file_name + 'seed', '') or { panic(err) }
-			os.write_file(file_name + 'map', '${u8(255).ascii_str():100r}') or { panic(err) }
+	if ses_name != '' {
+		if !os.exists(dir_name) {
+			os.mkdir(dir_name) or {panic(err)}
+			os.write_file(files_name + 'seed', '') or { panic(err) }
+			os.write_file(files_name + 'map', '${u8(255).ascii_str():100r}') or { panic(err) }
 			mut a := []u8{len: 256 * 4, init: 0}
 			a[254 * 4] = 10
 			a[255 * 4] = 1 // air
 			a[1 * 4] = 20 // TODO: give/descendance system
-			os.write_file(file_name + 'inv', a.bytestr()) or { panic(err) }
+			os.write_file(files_name + 'inv', a.bytestr()) or { panic(err) }
 		}
-		mut seeds := os.read_lines(file_name + 'seed') or { panic(err) }
+		mut seeds := os.read_lines(files_name + 'seed') or { panic(err) }
 		// send data from the save
-		mut map_ := os.read_file(file_name + 'map') or { panic(err) }
+		mut map_ := os.read_file(files_name + 'map') or { panic(err) }
 		ses.write_string(map_ + '\n') or { panic(err) }
-		mut inv_ := os.read_file(file_name + 'inv') or { panic(err) }
+		inv_ := os.read_file(files_name + 'inv') or { panic(err) }
 		ses.write(inv_.bytes()) or { panic(err) }
 		mut inv := []int{len: 256}
 		for i in 0 .. 256 {
 			inv[i] = conv(inv_[i * 4..(i + 1) * 4].bytes())
+		}
+
+		defer {
+			mut seed_file := ''
+			for s in seeds {
+				seed_file = seed_file + s + '\n'
+			}
+			seed_file = seed_file#[..-1] // remove \n
+			os.write_file(files_name + 'seed', seed_file) or { panic(err) }
+			os.write_file(files_name + 'map', map_) or { panic(err) }
+			mut inv_file := ''
+			for i in inv {
+				inv_file += cback(i)
+			}
+			os.write_file(files_name + 'inv', inv_file) or { panic(err) }
 		}
 
 		// wait for requests if needed
